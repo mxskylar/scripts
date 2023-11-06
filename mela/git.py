@@ -15,6 +15,7 @@ def stage_recipe_files(recipes_dir):
     # TODO: Only check that files have been changed if only uncommitted files are being updated
     if not recipe_files:
         raise MelaGitException(f"No new recipes imported into {recipes_dir}")
+    # Do not stage the config file, all the other files should be recipe files
     os.popen(f"cd {recipes_dir}; git add . && git reset config.yaml")
     return recipe_files
 
