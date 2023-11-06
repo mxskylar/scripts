@@ -42,8 +42,13 @@ def validate_ingredients(ingredients):
         if len(ingredient.keys()) > 2 and (
                 "suffix" not in ingredient.keys()
                 or not type(ingredient['suffix'] is str)
+                or "(" in ingredient['suffix']
+                or ")" in ingredient['suffix']
         ):
-            return False, "must be a map with 2 or 3 keys. Optional third key must be 'suffix', which must be a string."
+            return False, (
+                    "must be a map with 2 or 3 keys. Optional third key must be 'suffix', "
+                    + "which must be a string that does NOT contain '(' or ')'."
+            )
     return True, ""
 
 

@@ -20,40 +20,65 @@ class Recipe:
     def format_recipe(self):
         """Formats recipe according to config and updates the recipe file"""
         print(self.file_path)
-        prefixed_ingredients = []
+        formatted_ingredients = []
         for ingredient in self.ingredients:
             ingredient_to_add = ingredient
             for configured_ingredient in self.config.ingredients:
-                prefixed_ingredient = self.__get_maybe_prefixed_ingredient__(ingredient, configured_ingredient)
-                if prefixed_ingredient:
-                    ingredient_to_add = prefixed_ingredient
+                ingredient_regex_match = self.__is_ingredient_match__(ingredient, configured_ingredient['names'])
+                if ingredient_regex_match:
+                    ingredient_regex_groups = ingredient_regex_match.groups()
+                    ingredient_name = ingredient_regex_groups[1]
+                    # Add prefixes, if any
+                    prefixed_ingredient = self.__get_prefixed_ingredient__(
+                        ingredient_regex_groups,
+                        configured_ingredient['prefix']
+                    )
+                    ingredient_to_add = prefixed_ingredient if prefixed_ingredient else ingredient_to_add
+                    # Add suffixes, if any
+                    if 'suffix' in configured_ingredient.keys():
+                        suffixed_ingredients = self.__get_suffixed_ingredient__(
+                            ingredient_name,
+                            ingredient_to_add,
+                            configured_ingredient['suffix']
+                        )
+                        ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
                     break
-            prefixed_ingredients.append(ingredient_to_add)
-        print(prefixed_ingredients)
-        # TODO: Format ingredient suffixes
+            formatted_ingredients.append(ingredient_to_add)
+        print(formatted_ingredients)
         # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
 
     @staticmethod
-    def __get_maybe_prefixed_ingredient__(ingredient, configured_ingredient):
-        for name in configured_ingredient['names']:
+    def __is_ingredient_match__(ingredient, configured_ingredient_names):
+        for name in configured_ingredient_names:
             regex_match = re.search(f'(.*)((?i){name})(.*)', ingredient)
             if regex_match:
-                regex_groups = regex_match.groups()
-                last_3_chars = regex_groups[0][-3:]
-                if (
-                        last_3_chars.endswith(' ')
-                        and last_3_chars[1] != ' '
-                        and last_3_chars.startswith(' ')
-                ):
-                    return (
-                            f"{regex_groups[0][:-3]} {configured_ingredient['prefix']} "
-                            + f"{regex_groups[1]}{regex_groups[2]}"
-                    )
-                return (
-                        f"{regex_groups[0].strip()} {configured_ingredient['prefix']} "
-                        + f"{regex_groups[1]}{regex_groups[2]}"
-                )
-        return None
+                return regex_match
+        return False
+
+    @staticmethod
+    def __get_prefixed_ingredient__(regex_groups, prefix):
+        last_3_chars = regex_groups[0][-3:]
+        if (
+                last_3_chars.endswith(' ')
+                and last_3_chars[1] != ' '
+                and last_3_chars.startswith(' ')
+        ):
+            return (
+                    f"{regex_groups[0][:-3]} {prefix} "
+                    + f"{regex_groups[1]}{regex_groups[2]}"
+            )
+        return (
+                f"{regex_groups[0].strip()} {prefix} "
+                + f"{regex_groups[1]}{regex_groups[2]}"
+        )
+
+    @staticmethod
+    def __get_suffixed_ingredient__(ingredient_name, ingredient, suffix):
+        regex_match = re.search(f'(.*)((?i){ingredient_name}.*)(\\(.*\\))', ingredient)
+        if regex_match:
+            regex_groups = regex_match.groups()
+            return f"{regex_groups[0]}{regex_groups[1]} ({suffix.strip()})"
+        return f"{ingredient.strip()} ({suffix.strip()})"
 
     def __write_updated_json_object_to_file__(self):
         # TODO Overwrite recipe file with JSON string
