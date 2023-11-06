@@ -6,7 +6,7 @@ import click
 
 from mela.git_repo_client import GitRepoClient, CONFIG_FILE
 from mela.recipe import Recipe
-from mela.yaml_config import get_config
+from mela.config import Config
 
 DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
 
@@ -22,13 +22,12 @@ DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
 def recipes(ctx, **kwargs):
     ctx.ensure_object(dict)
     ctx.obj['recipes_dir'] = kwargs['recipes']
-    ctx.obj['config'] = get_config(f"{ctx.obj['recipes_dir']}/config.yaml")
+    ctx.obj['config'] = Config(f"{ctx.obj['recipes_dir']}/config.yaml")
 
 
 @recipes.command(name='format')
 @click.pass_context
 def format_command(ctx):
-    format_config = ctx.obj['config']['format']
     git_repo_client = GitRepoClient(ctx.obj['recipes_dir'])
     if git_repo_client.is_valid_git_repo:
         git_repo_client.stage_recipe_files()  # Un-formatted recipes will be staged in git
@@ -37,8 +36,8 @@ def format_command(ctx):
         if os.path.isfile(f"{ctx.obj['recipes_dir']}/{file_name}") and file_name != CONFIG_FILE
     ]
     for file_name in recipe_files_to_format:
-        mela_recipe = Recipe(f"{ctx.obj['recipes_dir']}/{file_name}")
-        mela_recipe.format_recipe(format_config)
+        mela_recipe = Recipe(f"{ctx.obj['recipes_dir']}/{file_name}", ctx.obj['config'])
+        mela_recipe.format_recipe()
 
 
 if __name__ == '__main__':

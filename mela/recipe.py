@@ -1,5 +1,7 @@
 import json
 import os
+import re
+
 from mela.config import Config
 
 
@@ -17,19 +19,41 @@ class Recipe:
 
     def format_recipe(self):
         """Formats recipe according to config and updates the recipe file"""
-        # TODO: Format ingredient prefixes & suffixes
-        # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
-        formatted_ingredients = []
-        for ingredient in self.ingredients:
-            for configured_ingredient in self.config.ingredients:
-                preceding, prefix, ingredient, following = (
-                    self.__get_ingredient__pieces__(ingredient, configured_ingredient)
-                )
         print(self.file_path)
+        prefixed_ingredients = []
+        for ingredient in self.ingredients:
+            ingredient_to_add = ingredient
+            for configured_ingredient in self.config.ingredients:
+                prefixed_ingredient = self.__get_maybe_prefixed_ingredient__(ingredient, configured_ingredient)
+                if prefixed_ingredient:
+                    ingredient_to_add = prefixed_ingredient
+                    break
+            prefixed_ingredients.append(ingredient_to_add)
+        print(prefixed_ingredients)
+        # TODO: Format ingredient suffixes
+        # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
 
     @staticmethod
-    def __get_ingredient__pieces__(ingredient, configured_ingredient):
-        return ingredient, ingredient, ingredient, ingredient
+    def __get_maybe_prefixed_ingredient__(ingredient, configured_ingredient):
+        for name in configured_ingredient['names']:
+            regex_match = re.search(f'(.*)((?i){name})(.*)', ingredient)
+            if regex_match:
+                regex_groups = regex_match.groups()
+                last_3_chars = regex_groups[0][-3:]
+                if (
+                        last_3_chars.endswith(' ')
+                        and last_3_chars[1] != ' '
+                        and last_3_chars.startswith(' ')
+                ):
+                    return (
+                            f"{regex_groups[0][:-3]} {configured_ingredient['prefix']} "
+                            + f"{regex_groups[1]}{regex_groups[2]}"
+                    )
+                return (
+                        f"{regex_groups[0].strip()} {configured_ingredient['prefix']} "
+                        + f"{regex_groups[1]}{regex_groups[2]}"
+                )
+        return None
 
     def __write_updated_json_object_to_file__(self):
         # TODO Overwrite recipe file with JSON string
