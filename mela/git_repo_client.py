@@ -15,16 +15,10 @@ class GitRepoClient:
         git_repo_path = os.popen(f"cd {repository_path}; git rev-parse --show-toplevel").read().strip()
         self.is_valid_git_repo = git_installation and git_repo_path == repository_path
 
-    def stage_recipe_files(self):
-        """Returns staged recipe files with uncommitted changes"""
-        uncommitted_files = self.__get_uncommitted_files__()
-        if not uncommitted_files:
-            raise GitRepoException(f"No files with uncommitted changes in {self.repository_path}")
-        # Ignore the config file. Do not stage or return it. All the other files should be recipe files.
-        os.popen(f"cd {self.repository_path}; git add . && git reset {CONFIG_FILE}")
-        return [file_name for file_name in uncommitted_files if file_name != CONFIG_FILE]
+    def add_files_to_staging(self):
+        os.popen(f"cd {self.repository_path}; git add .")
 
-    def __get_uncommitted_files__(self):
+    def get_uncommitted_files(self):
         git_status = os.popen(
             f"cd {self.repository_path}; "
             + "git status --short | "

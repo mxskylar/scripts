@@ -13,14 +13,12 @@ class Recipe:
             # Mela JSON format for individually exported recipes: https://mela.recipes/fileformat/index.html
             self.json_object = json.loads(file.read())
             self.json_object['ingredients'] = [
-                ingredient.strip() for ingredient in self.json_object['ingredients'].split(os.linesep)
+                 ingredient.strip() for ingredient in self.json_object['ingredients'].split(os.linesep)
                 if not ingredient.strip().startswith('#')
             ]
 
     def format_recipe(self):
         """Formats recipe according to config and updates the recipe file"""
-        print(self.file_path)
-
         # Ingredients
         formatted_ingredients = []
         for ingredient in self.json_object['ingredients']:
@@ -46,7 +44,7 @@ class Recipe:
                         ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
                     break
             formatted_ingredients.append(ingredient_to_add)
-        self.json_object['ingredients'] = formatted_ingredients
+        self.json_object['ingredients'] = os.linesep.join(formatted_ingredients)
 
         # Categories - Remove WIP category if it exists
         categories_to_use = []
@@ -54,6 +52,8 @@ class Recipe:
             if category != "WIP":
                 categories_to_use.append(category)
         self.json_object['categories'] = categories_to_use
+
+        self.__write__to_file__()
 
     @staticmethod
     def __is_ingredient_match__(ingredient, configured_ingredient_names):
@@ -88,6 +88,6 @@ class Recipe:
             return f"{regex_groups[0]}{regex_groups[1]} ({suffix.strip()})"
         return f"{ingredient.strip()} ({suffix.strip()})"
 
-    def __write_updated_json_object_to_file__(self):
-        # TODO Overwrite recipe file with JSON string
-        print(self.file_path)
+    def __write__to_file__(self):
+        with open(self.file_path, "w") as file:
+            file.write(json.dumps(self.json_object))

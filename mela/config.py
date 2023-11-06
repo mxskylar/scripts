@@ -8,7 +8,7 @@ ALL_VALIDATORS = {
 class MissingConfigKeyException(Exception):
     """Exception raised when config is missing a required key"""
     def __init__(self, yaml_keys_string):
-        super().__init__(f"Key {yaml_keys_string} missing from YAML config")
+        super().__init__(f"Key '{yaml_keys_string}' missing from YAML config")
 
 
 class InvalidConfigTypeException(Exception):
@@ -55,15 +55,14 @@ def validate_ingredients(ingredients):
 def validate(validators, content, parent_yaml_keys_string=""):
     for key, value in validators.items():
         yaml_keys_string = f"{parent_yaml_keys_string}.{key}" if parent_yaml_keys_string else key
+        if key not in content.keys():
+            raise MissingConfigKeyException(yaml_keys_string)
         if callable(value):
             is_valid, error_message = value(content[key])
             if not is_valid:
                 raise InvalidConfigTypeException(yaml_keys_string, error_message)
             return True
-        else:
-            if key not in content.keys():
-                raise MissingConfigKeyException(yaml_keys_string)
-            return validate(validators[key], content[key], yaml_keys_string)
+        return validate(validators[key], content[key], yaml_keys_string)
 
 
 class Config:
