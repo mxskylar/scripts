@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 
-import click
 import os
+
+import click
+
+from mela.recipe_formatter import git_stage_recipe_files, format_recipes
+from mela.recipes_reader import get_recipes_as_json
 from mela.yaml_config import get_config
 
 DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
 
 
 @click.group()
-@click.pass_context
-def configurable(ctx):
-    ctx.ensure_object(dict)
-    ctx.obj['config'] = get_config()
-
-
-@configurable.command(name='format')
 @click.option(
     '--recipes',
     type=click.Path(exists=True, writable=True),
@@ -22,10 +19,19 @@ def configurable(ctx):
     help='Directory where recipes located'
 )
 @click.pass_context
-def format_command(ctx, **kwargs):
-    print(kwargs['recipes'])
-    print(ctx.obj['config'])
+def recipes(ctx, **kwargs):
+    ctx.ensure_object(dict)
+    ctx.obj['recipes_dir'] = kwargs['recipes']
+    ctx.obj['config'] = get_config(f"{ctx.obj['recipes_dir']}/config.yaml")
+    ctx.obj['recipe_json_objects'] = get_recipes_as_json(ctx.obj['recipes_dir'])
+
+
+@recipes.command(name='format')
+@click.pass_context
+def format_command(ctx):
+    git_stage_recipe_files(ctx.obj['recipes_dir'])  # Stage imported recipe files before formatting them
+    format_recipes(ctx.obj['recipe_json_objects'])  # Formatted recipes will be un-staged in git
 
 
 if __name__ == '__main__':
-    configurable()
+    recipes()
