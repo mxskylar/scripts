@@ -4,8 +4,8 @@ import os
 
 import click
 
-from mela.recipe_formatter import git_stage_recipe_files, format_recipes
-from mela.recipes_reader import get_recipes_as_json
+from mela.git import stage_recipe_files
+from mela.recipe import Recipe
 from mela.yaml_config import get_config
 
 DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
@@ -23,14 +23,18 @@ def recipes(ctx, **kwargs):
     ctx.ensure_object(dict)
     ctx.obj['recipes_dir'] = kwargs['recipes']
     ctx.obj['config'] = get_config(f"{ctx.obj['recipes_dir']}/config.yaml")
-    ctx.obj['recipe_json_objects'] = get_recipes_as_json(ctx.obj['recipes_dir'])
 
 
 @recipes.command(name='format')
 @click.pass_context
 def format_command(ctx):
-    git_stage_recipe_files(ctx.obj['recipes_dir'])  # Stage imported recipe files before formatting them
-    format_recipes(ctx.obj['recipe_json_objects'])  # Formatted recipes will be un-staged in git
+    format_config = ctx.obj['config']['format']
+    changed_recipe_file_paths = stage_recipe_files(ctx.obj['recipes_dir'])
+    # TODO: Add flag to specify whether all recipes or just recently changed and uncommitted recipes should be formatted
+    recipes_to_format = changed_recipe_file_paths
+    for recipe_path in recipes_to_format:
+        mela_recipe = Recipe(recipe_path)
+        mela_recipe.format_recipe(format_config)  # Formatted recipes will be un-staged in git
 
 
 if __name__ == '__main__':
