@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import click
+import os
+from mela.yaml_config import get_config
+
+DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
+
+
+@click.group()
+@click.pass_context
+def configurable(ctx):
+    ctx.ensure_object(dict)
+    ctx.obj['config'] = get_config()
+
+
+@configurable.command(name='format')
+@click.option(
+    '--recipes',
+    type=click.Path(exists=True, writable=True),
+    default=DEFAULT_RECIPES_DIR,
+    help='Directory where recipes located'
+)
+@click.pass_context
+def format_command(ctx, **kwargs):
+    print(kwargs['recipes'])
+    print(ctx.obj['config'])
+
+
+if __name__ == '__main__':
+    configurable()
