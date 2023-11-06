@@ -44,7 +44,7 @@ class Recipe:
                         ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
                     break
             formatted_ingredients.append(ingredient_to_add)
-        print(formatted_ingredients)
+        self.ingredients = formatted_ingredients
         # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
 
     @staticmethod
