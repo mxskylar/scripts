@@ -87,7 +87,7 @@ class Recipe:
         regex_match = re.search(f'(.*)((?i){ingredient_name}.*)(\\(.*\\))', ingredient)
         if regex_match:
             regex_groups = regex_match.groups()
-            return f"{regex_groups[0]}{regex_groups[1]} ({suffix.strip()})"
+            return f"{regex_groups[0]}{regex_groups[1].strip()} ({suffix.strip()})"
         return f"{ingredient.strip()} ({suffix.strip()})"
 
     def __write__to_file__(self):

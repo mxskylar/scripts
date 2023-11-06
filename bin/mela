@@ -4,7 +4,6 @@ import os
 
 import click
 
-from mela.git_repo_client import GitRepoClient, GitRepoException, CONFIG_FILE
 from mela.recipe import Recipe
 from mela.config import Config
 
@@ -16,7 +15,7 @@ DEFAULT_RECIPES_DIR = f"{os.environ['HOME']}/mela"
     '--recipes',
     type=click.Path(exists=True, writable=True),
     default=DEFAULT_RECIPES_DIR,
-    help='Directory where recipes located'
+    help='Directory where recipes located (by default this is $HOME/mela)'
 )
 @click.pass_context
 def recipes(ctx, **kwargs):
@@ -28,23 +27,16 @@ def recipes(ctx, **kwargs):
 @recipes.command(name='format')
 @click.pass_context
 def format_command(ctx):
-    git_repo_client = GitRepoClient(ctx.obj['recipes_dir'])
-    if git_repo_client.is_valid_git_repo and len(git_repo_client.get_uncommitted_files()) == 0:
-        raise GitRepoException(f"No files with uncommitted changes in {git_repo_client.repository_path}")
     recipe_files_to_format = [
         file_name for file_name in os.listdir(ctx.obj['recipes_dir'])
-        if os.path.isfile(f"{ctx.obj['recipes_dir']}/{file_name}") and file_name != CONFIG_FILE
+        if os.path.isfile(f"{ctx.obj['recipes_dir']}/{file_name}") and file_name != "config.yaml"
     ]
-
     print("🔨 Formatting files...")
     files_formatted = 0
     for file_name in recipe_files_to_format:
         mela_recipe = Recipe(f"{ctx.obj['recipes_dir']}/{file_name}", ctx.obj['config'])
         mela_recipe.format_recipe()
         files_formatted += 1
-
-    if git_repo_client.is_valid_git_repo:
-        git_repo_client.add_files_to_staging()
     print(f"✅  Formatted {files_formatted} files")
 
 
