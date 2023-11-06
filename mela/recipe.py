@@ -12,7 +12,7 @@ class Recipe:
         """Formats recipe according to config and updates the recipe file"""
         # TODO: Format ingredient prefixes & suffixes
         # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
-        print(self.json_object)
+        print(self.file_path)
 
     def __update_recipe_file__(self):
         # TODO Overwrite recipe file with JSON string
