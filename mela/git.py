@@ -1,7 +1,5 @@
 import os
 
-CONFIG_FILE_NAME = "config.yaml"
-
 
 class MelaGitException(Exception):
     def __init__(self, message):
