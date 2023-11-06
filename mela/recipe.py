@@ -12,37 +12,39 @@ class Recipe:
         with open(self.file_path) as file:
             # Mela JSON format for individually exported recipes: https://mela.recipes/fileformat/index.html
             self.json_object = json.loads(file.read())
-            self.json_object['ingredients'] = [
-                 ingredient.strip() for ingredient in self.json_object['ingredients'].split(os.linesep)
-                if not ingredient.strip().startswith('#')
-            ]
 
     def format_recipe(self):
         """Formats recipe according to config and updates the recipe file"""
         # Ingredients
+        ingredients = self.json_object['ingredients'].split(os.linesep)
         formatted_ingredients = []
-        for ingredient in self.json_object['ingredients']:
+        for ingredient in ingredients:
             ingredient_to_add = ingredient
-            for configured_ingredient in self.config.ingredients:
-                ingredient_regex_match = self.__is_ingredient_match__(ingredient, configured_ingredient['names'])
-                if ingredient_regex_match:
-                    ingredient_regex_groups = ingredient_regex_match.groups()
-                    ingredient_name = ingredient_regex_groups[1]
-                    # Add prefixes, if any
-                    prefixed_ingredient = self.__get_prefixed_ingredient__(
-                        ingredient_regex_groups,
-                        configured_ingredient['prefix']
+            # Ignore empty lines and headers
+            if ingredient_to_add.strip() and not ingredient_to_add.strip().startswith('#'):
+                for configured_ingredient in self.config.ingredients:
+                    ingredient_regex_match = self.__is_ingredient_match__(
+                        ingredient_to_add,
+                        configured_ingredient['names']
                     )
-                    ingredient_to_add = prefixed_ingredient if prefixed_ingredient else ingredient_to_add
-                    # Add suffixes, if any
-                    if 'suffix' in configured_ingredient.keys():
-                        suffixed_ingredients = self.__get_suffixed_ingredient__(
-                            ingredient_name,
-                            ingredient_to_add,
-                            configured_ingredient['suffix']
+                    if ingredient_regex_match:
+                        ingredient_regex_groups = ingredient_regex_match.groups()
+                        ingredient_name = ingredient_regex_groups[1]
+                        # Add prefixes, if any
+                        prefixed_ingredient = self.__get_prefixed_ingredient__(
+                            ingredient_regex_groups,
+                            configured_ingredient['prefix']
                         )
-                        ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
-                    break
+                        ingredient_to_add = prefixed_ingredient if prefixed_ingredient else ingredient_to_add
+                        # Add suffixes, if any
+                        if 'suffix' in configured_ingredient.keys():
+                            suffixed_ingredients = self.__get_suffixed_ingredient__(
+                                ingredient_name,
+                                ingredient_to_add,
+                                configured_ingredient['suffix']
+                            )
+                            ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
+                        break
             formatted_ingredients.append(ingredient_to_add)
         self.json_object['ingredients'] = os.linesep.join(formatted_ingredients)
 
