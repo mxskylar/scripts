@@ -12,7 +12,7 @@ class Recipe:
         with open(self.file_path) as file:
             # Mela JSON format for individually exported recipes: https://mela.recipes/fileformat/index.html
             self.json_object = json.loads(file.read())
-            self.ingredients = [
+            self.json_object['ingredients'] = [
                 ingredient.strip() for ingredient in self.json_object['ingredients'].split(os.linesep)
                 if not ingredient.strip().startswith('#')
             ]
@@ -20,8 +20,10 @@ class Recipe:
     def format_recipe(self):
         """Formats recipe according to config and updates the recipe file"""
         print(self.file_path)
+
+        # Ingredients
         formatted_ingredients = []
-        for ingredient in self.ingredients:
+        for ingredient in self.json_object['ingredients']:
             ingredient_to_add = ingredient
             for configured_ingredient in self.config.ingredients:
                 ingredient_regex_match = self.__is_ingredient_match__(ingredient, configured_ingredient['names'])
@@ -44,8 +46,14 @@ class Recipe:
                         ingredient_to_add = suffixed_ingredients if suffixed_ingredients else ingredient_to_add
                     break
             formatted_ingredients.append(ingredient_to_add)
-        self.ingredients = formatted_ingredients
-        # TODO: Remove WIP label/category if it exists for a recipe, after formatting it
+        self.json_object['ingredients'] = formatted_ingredients
+
+        # Categories - Remove WIP category if it exists
+        categories_to_use = []
+        for category in self.json_object['categories']:
+            if category != "WIP":
+                categories_to_use.append(category)
+        self.json_object['categories'] = categories_to_use
 
     @staticmethod
     def __is_ingredient_match__(ingredient, configured_ingredient_names):
