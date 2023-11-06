@@ -30,7 +30,8 @@ def recipes(ctx, **kwargs):
 def format_command(ctx):
     format_config = ctx.obj['config']['format']
     changed_recipe_file_paths = stage_recipe_files(ctx.obj['recipes_dir'])
-    # TODO: Add flag to specify whether all recipes or just recently changed and uncommitted recipes should be formatted
+    # TODO: Automatically detect if all recipe files should be formatted (when there are changes to the config.yaml)
+    # Otherwise, just update the recipe files with uncommitted changes
     recipes_to_format = changed_recipe_file_paths
     for recipe_path in recipes_to_format:
         mela_recipe = Recipe(recipe_path)
