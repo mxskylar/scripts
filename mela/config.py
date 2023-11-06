@@ -36,8 +36,9 @@ def validate_ingredients(ingredients):
         if (
                 "prefix" not in ingredient.keys()
                 or not type(ingredient['prefix']) is str
+                or len(ingredient['prefix']) != 1
         ):
-            return False, "must contain key 'prefix' that is a string"
+            return False, "must contain key 'prefix' that is a string with only one character"
         if len(ingredient.keys()) > 2 and (
                 "suffix" not in ingredient.keys()
                 or not type(ingredient['suffix'] is str)
