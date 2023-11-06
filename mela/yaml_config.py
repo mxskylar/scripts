@@ -4,8 +4,9 @@ ALL_VALIDATORS = {
     'format': {
         'ingredients': {
             'prefixes': (
-                lambda value: type(value) is dict and all(type(item) is str for item in value.values()),
-                "must be map<string, string>"
+                lambda value:
+                    type(value) is dict and all(type(item) is str and len(item) == 1 for item in value.values()),
+                "must be map<string, string> with values that are one character long"
             )
         }
     }
