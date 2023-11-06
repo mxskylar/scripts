@@ -25,12 +25,14 @@ def get_uncommitted_recipe_files(recipes_dir):
         f"cd {recipes_dir}; "
         + "git status --short | "
         + f"grep -v 'config.yaml' | "  # Ignore config file, all other files should be recipes
-        + "sed -e 's/A //g' -e 's/\?\? //g'"
+        + "sed -e 's/A //g' -e 's/\?\? //g'"  # Strips symbols indicating whether a file is staged or not
     )
+    # Strip quotes from file names and add them to a list split by each new line
     status_items = git_status.read().replace('"', '').split(os.linesep)
     recipe_files = []
     for item in status_items:
         recipe_file_name = item.strip()
+        # Ignore empty strings in the status_items list
         if recipe_file_name:
             recipe_files.append(f"{recipes_dir}/{recipe_file_name}")
     return recipe_files
