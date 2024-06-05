@@ -1,3 +1,0 @@
-click == 8.*
-PyYAML == 6.*
-pathlib == 1.*
