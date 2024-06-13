@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# $1 Script name
+
+SCRIPT_PATH="$1"
+set -o xtrace
+touch $SCRIPT_PATH
+chmod +x $SCRIPT_PATH
+echo "#!/bin/bash" >> $SCRIPT_PATH
+echo "" >> $SCRIPT_PATH
+echo "set -o xtrace" >> $SCRIPT_PATH
+vim $SCRIPT_PATH
