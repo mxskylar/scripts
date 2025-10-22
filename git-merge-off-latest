@@ -1,0 +1,13 @@
+#!/bin/bash
+
+FEATURE_BRANCH="$(git branch --show-current)"
+DEFAULT_BRANCH="$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')"
+if [[ "$FEATURE_BRANCH" == "$DEFAULT_BRANCH" ]]; then
+    echo "Cannot rebase default branch '$DEFAULT_BRANCH' off itself!"
+    exit 1
+fi
+set -o xtrace
+git checkout "$DEFAULT_BRANCH"
+git pull
+git checkout "$FEATURE_BRANCH"
+git merge "$DEFAULT_BRANCH"
