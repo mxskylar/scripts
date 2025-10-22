@@ -1,0 +1,29 @@
+#!/bin/bash
+
+FEATURE_BRANCH="$(git branch --show-current)"
+DEFAULT_BRANCH="$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')"
+if [[ "$FEATURE_BRANCH" == "$DEFAULT_BRANCH" ]]; then
+    echo "Cannot delete default branch: $DEFAULT_BRANCH"
+    exit 1
+fi
+
+# Get state of PR on current branch in lower case letters
+# The state can be open, closed, merged, or all
+PR_STATE="$(gh pr status --json state --jq .currentBranch.state | tr '[:upper:]' '[:lower:]')"
+if [[ "$PR_STATE" == "" ]]; then
+    echo "No PR open for feature branch: $FEATURE_BRANCH"
+    read -p "Delete the branch? [Y/n]: " CONFIRMATION
+    if [[ "$CONFIRMATION" != "Y" ]]; then
+        exit 1
+    fi
+elif [[ "$PR_STATE" != "merged" ]] && [[ "$PR_STATE" != "closed" ]]; then
+    PR_URL="$(gh pr status --json url --jq .currentBranch.url)"
+    echo "PR is $PR_STATE. Close or merge it before cleaning up the branch!"
+    echo "> $PR_URL"
+    exit 1
+fi
+
+set -o xtrace
+git checkout "$DEFAULT_BRANCH"
+git pull
+git branch -D "$FEATURE_BRANCH"
