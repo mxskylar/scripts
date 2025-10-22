@@ -9,4 +9,4 @@ chmod +x $SCRIPT_PATH
 echo "#!/bin/bash" >> $SCRIPT_PATH
 echo "" >> $SCRIPT_PATH
 echo "set -o xtrace" >> $SCRIPT_PATH
-vim $SCRIPT_PATH
+echo "Created script $1"
