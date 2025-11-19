@@ -1,0 +1,8 @@
+#!/bin/bash
+
+git diff --name-only --cached | while IFS= read -r file; do
+	echo ""
+	echo "Formatting $file"
+	black $file
+	git add $file
+done
