@@ -1,8 +1,9 @@
 #!/bin/bash
 
+# $@ Executable command and relevant args to format staged files
+
 git diff --name-only --cached | while IFS= read -r file; do
-	echo ""
-	echo "Formatting $file"
-	black $file
+	echo "$@ $file"
+	$@ $file
 	git add $file
 done
